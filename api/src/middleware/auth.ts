@@ -1,7 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../lib/jwt.js";
 
-export type AuthedRequest = Request & { userId?: string };
+export type AuthedRequest = Request & {
+  userId?: string;
+  file?: Express.Multer.File;
+};
 
 export function requireAuth(
   req: AuthedRequest,
