@@ -5,7 +5,16 @@ import multer from "multer";
 import { randomBytes } from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const UPLOAD_DIR = path.join(__dirname, "../../uploads");
+
+function resolveUploadDir() {
+  const db = process.env.DATABASE_URL ?? "";
+  if (db.startsWith("file:/data")) {
+    return "/data/uploads";
+  }
+  return path.join(__dirname, "../../uploads");
+}
+
+export const UPLOAD_DIR = resolveUploadDir();
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });

@@ -1,14 +1,15 @@
 import crypto from "node:crypto";
 
 function masterKey(): Buffer {
-  const hex = process.env.MESSAGE_ENCRYPTION_KEY;
-  if (hex?.length === 64) {
-    return Buffer.from(hex, "hex");
+  const raw = process.env.MESSAGE_ENCRYPTION_KEY;
+  if (raw?.length === 64 && /^[0-9a-f]+$/i.test(raw)) {
+    return Buffer.from(raw, "hex");
+  }
+  if (raw && raw.length >= 32) {
+    return crypto.createHash("sha256").update(raw).digest();
   }
   if (process.env.NODE_ENV === "production") {
-    throw new Error(
-      "MESSAGE_ENCRYPTION_KEY must be 64 hex chars (32 bytes) in production"
-    );
+    throw new Error("MESSAGE_ENCRYPTION_KEY is missing or too short");
   }
   return crypto
     .createHash("sha256")
