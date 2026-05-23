@@ -77,9 +77,12 @@ export async function api<T>(
     try {
       err = JSON.parse(text) as { error?: string };
     } catch {
-      if (res.status === 401 && text.includes("Authentication Required")) {
+      if (
+        res.status === 401 &&
+        (text.includes("Authentication Required") || text.includes("Vercel Authentication"))
+      ) {
         throw new Error(
-          "Доступ к API закрыт Vercel Protection. Отключите её в Project Settings → Deployment Protection или откройте Production-домен."
+          "API заблокирован Vercel (401). Settings → Deployment Protection → Vercel Authentication → Disabled → Redeploy."
         );
       }
       throw new Error(res.status === 504 ? "Сервер не ответил (таймаут). Попробуйте снова." : "Ошибка запроса");

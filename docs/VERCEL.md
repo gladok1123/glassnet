@@ -13,17 +13,34 @@
 
 **Удалите**, если были: `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_API_URL`.
 
-## Deployment Protection (важно для логина)
+## Ошибка 401 на `/backend/auth/login` (самое частое)
 
-Если URL вида `glassnet-xxxxx-hoomeees-projects.vercel.app` — это **preview** с защитой Vercel.
+**Это не неверный пароль.** Vercel **Deployment Protection** отдаёт `401` до вашего API.
 
-**Симптом:** логин/регистрация не работают, в Network — `401` или HTML «Authentication Required» на `/backend/*`.
+В DevTools → Network на запросе `login` будет **401** и в ответе HTML «Authentication Required» / Vercel SSO.
 
-**Решение (одно из):**
+### Исправление (обязательно)
 
-1. **Project Settings → Deployment Protection** → отключить для Production (или для Preview).
-2. Открывать **Production**-домен (`glassnet.vercel.app` или ваш alias), не preview-ссылку.
-3. В **Settings → Domains** назначить production и пользоваться им.
+1. [vercel.com](https://vercel.com) → проект **glassnet** → **Settings**
+2. **Deployment Protection**
+3. **Vercel Authentication** → **Disabled** для:
+   - **Production**
+   - **Preview** (иначе preview-ссылки не работают с API)
+4. **Save**
+5. **Deployments** → последний деплой → **Redeploy**
+
+### Какой URL открывать
+
+| URL | Работает? |
+|-----|-----------|
+| `glassnet.vercel.app` (Production) | ✅ после отключения защиты |
+| `glassnet-xxxxx-…-projects.vercel.app` (Preview) | ⚠️ только если защита Preview выключена |
+
+### Проверка
+
+В браузере: `https://ВАШ-ДОМЕН/backend/health`
+
+Должен быть **JSON** `{"ok":true,"db":true}`, а не страница входа Vercel.
 
 ---
 
