@@ -14,7 +14,7 @@ import { BackButton } from "@/components/BackButton";
 import { AppIcon } from "@/components/icons/AppIcon";
 
 export default function PostDetailPage() {
-  const { id } = useParams();
+  const id = String(useParams()?.id ?? "");
   const router = useRouter();
   const postId = id as string;
   const [post, setPost] = useState<Post | null>(null);

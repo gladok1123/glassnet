@@ -15,8 +15,7 @@ import { AppIcon } from "@/components/icons/AppIcon";
 type Mode = "text" | "poll" | "voice";
 
 function ComposeForm() {
-  const search = useSearchParams();
-  const repostId = search.get("repost");
+  const repostId = useSearchParams()?.get("repost") ?? null;
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const mediaRecRef = useRef<MediaRecorder | null>(null);

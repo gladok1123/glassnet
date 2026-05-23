@@ -12,8 +12,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import type { PublicUser } from "@/lib/types";
 
 export default function NewChatPage() {
-  const params = useParams();
-  const username = params.username as string;
+  const username = String(useParams()?.username ?? "");
   const router = useRouter();
   const [user, setUser] = useState<PublicUser | null>(null);
   const [text, setText] = useState("");

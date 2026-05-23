@@ -72,7 +72,8 @@ export function GlassNav() {
         <ul className="flex items-end justify-around">
           {tabs.map((tab) => {
             const active =
-              pathname === tab.href || tab.match?.(pathname) === true;
+              pathname === tab.href ||
+              (pathname != null && tab.match?.(pathname) === true);
 
             return (
               <li key={tab.href} className="flex-1">

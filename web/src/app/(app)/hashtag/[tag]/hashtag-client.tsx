@@ -7,7 +7,7 @@ import type { Post } from "@/lib/types";
 import { PostCard } from "@/components/PostCard";
 
 export default function HashtagPage() {
-  const tag = (useParams().tag as string).replace(/^#/, "");
+  const tag = String(useParams()?.tag ?? "").replace(/^#/, "");
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {

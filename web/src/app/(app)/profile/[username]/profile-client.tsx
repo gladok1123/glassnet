@@ -15,9 +15,8 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { AppIcon } from "@/components/icons/AppIcon";
 
 export default function ProfilePage() {
-  const params = useParams();
   const router = useRouter();
-  const username = params.username as string;
+  const username = String(useParams()?.username ?? "");
   const { logout, refreshUser } = useAuth();
   const avatarRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);

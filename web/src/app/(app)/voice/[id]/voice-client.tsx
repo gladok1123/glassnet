@@ -9,7 +9,7 @@ import { VoiceCallRoom } from "@/components/VoiceCallRoom";
 import { BackButton } from "@/components/BackButton";
 
 export default function VoiceRoomPage() {
-  const { id } = useParams();
+  const id = String(useParams()?.id ?? "");
   const roomId = id as string;
   const router = useRouter();
   const { user } = useAuth();

@@ -9,7 +9,8 @@
 ## 2. Vercel
 
 1. [vercel.com/new](https://vercel.com/new) → Import **gladok1123/glassnet** (или ваш fork).
-2. **Root Directory:** `web`
+2. **Root Directory:** `web` (обязательно; иначе Vercel возьмёт старый конфиг)
+3. Если была ошибка `api-handler` — **Deployments → … → Redeploy** и включите **Clear build cache**
 3. **Environment variables** (Production):
 
 | Переменная | Значение |

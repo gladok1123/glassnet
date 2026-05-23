@@ -25,8 +25,7 @@ function upsertMessage(prev: Message[], incoming: Message): Message[] {
 }
 
 export default function ChatPage() {
-  const { id } = useParams();
-  const conversationId = id as string;
+  const conversationId = String(useParams()?.id ?? "");
   const router = useRouter();
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);

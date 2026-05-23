@@ -10,7 +10,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { BackButton } from "@/components/BackButton";
 
 export default function ClanDetailPage() {
-  const { id } = useParams();
+  const id = String(useParams()?.id ?? "");
   const router = useRouter();
   const [clan, setClan] = useState<Clan | null>(null);
 
