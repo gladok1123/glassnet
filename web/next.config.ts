@@ -10,7 +10,11 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: repoRoot,
   serverExternalPackages: ["@prisma/client"],
   outputFileTracingIncludes: {
-    "/backend/[[...slug]]": ["./api/prisma/glassnet.db"],
+    "/backend/[[...slug]]": [
+      "./api/prisma/glassnet.db",
+      "./api/dist/**",
+      "./node_modules/.prisma/client/**",
+    ],
   },
   devIndicators: false,
   ...(basePath ? { basePath, assetPrefix: basePath } : {}),

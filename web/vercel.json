@@ -6,5 +6,11 @@
     "env": {
       "DATABASE_URL": "file:./glassnet.db"
     }
+  },
+  "functions": {
+    "src/app/backend/[[...slug]]/route.ts": {
+      "includeFiles": "../api/prisma/glassnet.db",
+      "maxDuration": 60
+    }
   }
 }

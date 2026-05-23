@@ -12,9 +12,32 @@ import { UPLOAD_DIR } from "./lib/upload.js";
 import { applySecurity } from "./lib/security.js";
 import { checkDatabase } from "./lib/db.js";
 
+function corsOrigin(
+  requestOrigin: string | undefined,
+  callback: (err: Error | null, allow?: boolean) => void
+) {
+  if (!requestOrigin) {
+    callback(null, true);
+    return;
+  }
+  const allowed = process.env.CORS_ORIGIN ?? "http://localhost:3000";
+  if (requestOrigin === allowed) {
+    callback(null, true);
+    return;
+  }
+  if (process.env.VERCEL_URL && requestOrigin.includes(process.env.VERCEL_URL)) {
+    callback(null, true);
+    return;
+  }
+  if (requestOrigin.endsWith(".vercel.app")) {
+    callback(null, true);
+    return;
+  }
+  callback(null, process.env.NODE_ENV !== "production");
+}
+
 export function createApp() {
   const app = express();
-  const origin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
 
   app.use((req, _res, next) => {
     if (req.url.startsWith("/backend")) {
@@ -27,7 +50,7 @@ export function createApp() {
 
   app.use(
     cors({
-      origin,
+      origin: corsOrigin,
       credentials: true,
       methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Authorization", "Content-Type"],

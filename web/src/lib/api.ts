@@ -29,6 +29,7 @@ async function refreshAccess(): Promise<string | null> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken: refresh }),
+    credentials: "include",
   });
   if (!res.ok) {
     clearTokens();
@@ -54,16 +55,35 @@ export async function api<T>(
     headers.set("Content-Type", "application/json");
   }
 
-  let res = await fetch(`${getApiUrl()}${path}`, { ...options, headers });
+  let res = await fetch(`${getApiUrl()}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
   if (res.status === 401 && getRefreshToken()) {
     token = await refreshAccess();
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
-      res = await fetch(`${getApiUrl()}${path}`, { ...options, headers });
+      res = await fetch(`${getApiUrl()}${path}`, {
+        ...options,
+        headers,
+        credentials: "include",
+      });
     }
   }
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
+    const text = await res.text();
+    let err: { error?: string };
+    try {
+      err = JSON.parse(text) as { error?: string };
+    } catch {
+      if (res.status === 401 && text.includes("Authentication Required")) {
+        throw new Error(
+          "Доступ к API закрыт Vercel Protection. Отключите её в Project Settings → Deployment Protection или откройте Production-домен."
+        );
+      }
+      throw new Error(res.status === 504 ? "Сервер не ответил (таймаут). Попробуйте снова." : "Ошибка запроса");
+    }
     throw new Error(
       typeof err.error === "string" ? err.error : "Ошибка запроса"
     );

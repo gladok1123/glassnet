@@ -13,6 +13,20 @@
 
 **Удалите**, если были: `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_API_URL`.
 
+## Deployment Protection (важно для логина)
+
+Если URL вида `glassnet-xxxxx-hoomeees-projects.vercel.app` — это **preview** с защитой Vercel.
+
+**Симптом:** логин/регистрация не работают, в Network — `401` или HTML «Authentication Required» на `/backend/*`.
+
+**Решение (одно из):**
+
+1. **Project Settings → Deployment Protection** → отключить для Production (или для Preview).
+2. Открывать **Production**-домен (`glassnet.vercel.app` или ваш alias), не preview-ссылку.
+3. В **Settings → Domains** назначить production и пользоваться им.
+
+---
+
 ## Когда делать Redeploy
 
 1. **Сейчас** — после `git push` с новым кодом и `glassnet.db`.
