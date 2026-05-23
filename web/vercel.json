@@ -9,15 +9,15 @@
   },
   "functions": {
     "src/app/backend/auth/**/route.ts": {
-      "includeFiles": "../api/prisma/glassnet.db",
+      "includeFiles": "../api/prisma/glassnet.db,../api/prisma/migrations/20250523120000_init/migration.sql",
       "maxDuration": 60
     },
     "src/app/backend/health/route.ts": {
-      "includeFiles": "../api/prisma/glassnet.db",
+      "includeFiles": "../api/prisma/glassnet.db,../api/prisma/migrations/20250523120000_init/migration.sql",
       "maxDuration": 30
     },
     "src/app/backend/[[...slug]]/route.ts": {
-      "includeFiles": "../api/prisma/glassnet.db",
+      "includeFiles": "../api/prisma/glassnet.db,../api/prisma/migrations/20250523120000_init/migration.sql",
       "maxDuration": 60
     }
   }

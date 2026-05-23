@@ -17,16 +17,19 @@ const nextConfig: NextConfig = {
     ],
     "/backend/auth/login": [
       "./api/prisma/glassnet.db",
+      "./api/prisma/migrations/20250523120000_init/migration.sql",
       "./api/dist/**",
       "./node_modules/.prisma/client/**",
     ],
     "/backend/auth/register": [
       "./api/prisma/glassnet.db",
+      "./api/prisma/migrations/20250523120000_init/migration.sql",
       "./api/dist/**",
       "./node_modules/.prisma/client/**",
     ],
     "/backend/health": [
       "./api/prisma/glassnet.db",
+      "./api/prisma/migrations/20250523120000_init/migration.sql",
       "./api/dist/**",
       "./node_modules/.prisma/client/**",
     ],

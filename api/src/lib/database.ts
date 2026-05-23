@@ -20,7 +20,7 @@ export function resolveDatabaseUrl(): string {
   const runtime = path.join("/tmp", DB_NAME);
 
   if (process.env.VERCEL) {
-    if (!fs.existsSync(runtime) && fs.existsSync(bundled)) {
+    if (fs.existsSync(bundled) && !fs.existsSync(runtime)) {
       fs.copyFileSync(bundled, runtime);
     }
     const url = `file:${runtime}`;
