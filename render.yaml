@@ -6,15 +6,12 @@ services:
     buildCommand: npm ci && npm run db:generate -w api && npm run build -w api
     startCommand: npm run db:push -w api && npm run start -w api
     healthCheckPath: /health
-    disk:
-      name: glassnet-data
-      mountPath: /data
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
+      # SQLite рядом со schema (api/prisma). На free tier данные сбрасываются при redeploy.
       - key: DATABASE_URL
-        value: file:/data/glassnet.db
+        value: file:./glassnet.db
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
