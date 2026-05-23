@@ -9,13 +9,12 @@
 ## 2. Vercel
 
 1. [vercel.com/new](https://vercel.com/new) → Import **gladok1123/glassnet** (или ваш fork).
-2. **Root Directory:** `web` (обязательно; иначе Vercel возьмёт старый конфиг)
-3. Если была ошибка `api-handler` — **Deployments → … → Redeploy** и включите **Clear build cache**
-3. **Environment variables** (Production):
+2. **Root Directory:** `web` **или** оставьте корень репозитория (`.`) — в репозитории есть оба `vercel.json`.
+3. **Environment variables** (Production) — задайте **до** первого деплоя (без `DATABASE_URL` сборка упадёт на `prisma db push`):
 
 | Переменная | Значение |
 |------------|----------|
-| `DATABASE_URL` | строка Neon |
+| `DATABASE_URL` | строка Neon (часто с `?sslmode=require` в конце) |
 | `JWT_SECRET` | случайная строка ≥32 символов |
 | `JWT_REFRESH_SECRET` | другая строка ≥32 символов |
 | `MESSAGE_ENCRYPTION_KEY` | 64 hex-символа или длинная случайная строка |
