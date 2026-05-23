@@ -8,6 +8,14 @@
     }
   },
   "functions": {
+    "src/app/backend/auth/**/route.ts": {
+      "includeFiles": "../api/prisma/glassnet.db",
+      "maxDuration": 60
+    },
+    "src/app/backend/health/route.ts": {
+      "includeFiles": "../api/prisma/glassnet.db",
+      "maxDuration": 30
+    },
     "src/app/backend/[[...slug]]/route.ts": {
       "includeFiles": "../api/prisma/glassnet.db",
       "maxDuration": 60

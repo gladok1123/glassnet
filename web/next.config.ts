@@ -15,6 +15,21 @@ const nextConfig: NextConfig = {
       "./api/dist/**",
       "./node_modules/.prisma/client/**",
     ],
+    "/backend/auth/login": [
+      "./api/prisma/glassnet.db",
+      "./api/dist/**",
+      "./node_modules/.prisma/client/**",
+    ],
+    "/backend/auth/register": [
+      "./api/prisma/glassnet.db",
+      "./api/dist/**",
+      "./node_modules/.prisma/client/**",
+    ],
+    "/backend/health": [
+      "./api/prisma/glassnet.db",
+      "./api/dist/**",
+      "./node_modules/.prisma/client/**",
+    ],
   },
   devIndicators: false,
   ...(basePath ? { basePath, assetPrefix: basePath } : {}),
