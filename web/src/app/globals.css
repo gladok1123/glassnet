@@ -1,0 +1,318 @@
+@import "tailwindcss";
+
+:root {
+  --bg-deep: #0a0a12;
+  --bg-mid: #12121f;
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.35);
+  --accent: #0a84ff;
+  --accent-soft: rgba(10, 132, 255, 0.35);
+  --text-primary: #f5f5f7;
+  --text-secondary: rgba(245, 245, 247, 0.55);
+  --danger: #ff453a;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Responsive icon scale (viewport-aware) */
+  --icon-xs: clamp(14px, 3.2vw, 17px);
+  --icon-sm: clamp(17px, 4vw, 21px);
+  --icon-md: clamp(20px, 4.8vw, 26px);
+  --icon-lg: clamp(24px, 5.6vw, 30px);
+  --icon-xl: clamp(28px, 6.5vw, 36px);
+  --icon-nav: clamp(24px, 5.8vw, 30px);
+  --icon-nav-center: clamp(28px, 7.2vw, 38px);
+  --icon-action: clamp(20px, 4.5vw, 24px);
+
+  --text-body: clamp(15px, 3.6vw, 17px);
+  --text-caption: clamp(11px, 2.7vw, 13px);
+  --text-title: clamp(18px, 4.5vw, 22px);
+  --text-display: clamp(26px, 6vw, 32px);
+  --nav-label: clamp(9px, 2.4vw, 11px);
+}
+
+@theme inline {
+  --font-sans: var(--font-app), "Segoe UI", system-ui, sans-serif;
+}
+
+.icon-size-xs {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+}
+.icon-size-sm {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.icon-size-md {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+.icon-size-lg {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+}
+.icon-size-xl {
+  width: var(--icon-xl);
+  height: var(--icon-xl);
+}
+.icon-size-nav {
+  width: var(--icon-nav);
+  height: var(--icon-nav);
+}
+.icon-size-nav-center {
+  width: var(--icon-nav-center);
+  height: var(--icon-nav-center);
+}
+.icon-size-action {
+  width: var(--icon-action);
+  height: var(--icon-action);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  background: var(--bg-deep);
+  letter-spacing: -0.01em;
+}
+
+.text-title {
+  font-size: var(--text-title);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.text-display {
+  font-size: var(--text-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.text-caption {
+  font-size: var(--text-caption);
+}
+
+.mesh-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    145deg,
+    #05050c 0%,
+    #0c0c18 35%,
+    #12122a 70%,
+    #0a0a14 100%
+  );
+  pointer-events: none;
+}
+
+.mesh-orbs {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mesh-orbs::before,
+.mesh-orbs::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  animation: orb-drift 18s ease-in-out infinite alternate;
+}
+
+.mesh-orbs::before {
+  width: min(70vw, 420px);
+  height: min(70vw, 420px);
+  left: -10%;
+  top: 5%;
+  background: radial-gradient(
+    circle,
+    rgba(10, 132, 255, 0.55) 0%,
+    rgba(10, 132, 255, 0) 70%
+  );
+}
+
+.mesh-orbs::after {
+  width: min(65vw, 380px);
+  height: min(65vw, 380px);
+  right: -15%;
+  bottom: 10%;
+  background: radial-gradient(
+    circle,
+    rgba(175, 82, 222, 0.5) 0%,
+    rgba(255, 55, 95, 0.15) 45%,
+    transparent 70%
+  );
+  animation-duration: 22s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes orb-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(8vw, 6vh) scale(1.08);
+  }
+  100% {
+    transform: translate(-4vw, 10vh) scale(0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mesh-orbs::before,
+  .mesh-orbs::after {
+    animation: none;
+  }
+}
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+  font-size: var(--text-body);
+}
+
+.glass-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.scroll-y {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 1.2vw, 8px);
+  min-height: clamp(36px, 9vw, 44px);
+  min-width: clamp(36px, 9vw, 44px);
+  padding: clamp(6px, 1.5vw, 10px) clamp(10px, 2.5vw, 14px);
+  border-radius: 9999px;
+  color: var(--text-secondary);
+  transition: color 0.2s, background 0.2s;
+}
+
+.icon-btn:hover {
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.icon-btn-active {
+  color: var(--accent);
+}
+
+.app-shell {
+  max-width: 100%;
+}
+
+@media (min-width: 480px) {
+  .app-shell {
+    max-width: 28rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .app-shell {
+    max-width: 32rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .app-shell {
+    max-width: 36rem;
+  }
+}
+
+.nav-dock {
+  width: 100%;
+}
+
+.nav-dock nav {
+  max-width: min(100vw - 1rem, 32rem);
+}
+
+.nav-dock ul {
+  flex-wrap: nowrap;
+}
+
+.nav-dock li .font-medium {
+  max-width: 3.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Скрыть отладочное меню Next.js (слева снизу в dev) */
+nextjs-portal,
+[data-nextjs-toast],
+[data-nextjs-dev-tools-button],
+#__nextjs-dev-tools-menu,
+button[data-nextjs-dev-tools-button] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+@supports (padding: max(0px)) {
+  .app-shell {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+@media (max-width: 380px) {
+  .nav-dock li .font-medium {
+    display: none;
+  }
+  .nav-dock li {
+    min-width: 0;
+  }
+}

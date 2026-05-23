@@ -1,0 +1,11 @@
+node_modules
+.next
+dist
+*.db
+*.db-journal
+api/uploads/
+.env
+.env.local
+api/.env
+web/.env.local
+.DS_Store

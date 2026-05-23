@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: glassnet
+      POSTGRES_PASSWORD: glassnet
+      POSTGRES_DB: glassnet
+    ports:
+      - "5432:5432"
+    volumes:
+      - glassnet_pg:/var/lib/postgresql/data
+
+volumes:
+  glassnet_pg:
