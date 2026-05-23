@@ -10,7 +10,7 @@ export async function GET() {
   try {
     initApi();
     if (process.env.NODE_ENV === "production") validateEnv();
-    const db = await checkDatabase();
+    const db = checkDatabase();
     if (!db.ok) {
       return Response.json(
         {

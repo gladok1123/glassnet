@@ -66,8 +66,8 @@ export function createApp() {
   });
   app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "7d" }));
 
-  app.get("/health", async (_req, res) => {
-    const db = await checkDatabase();
+  app.get("/health", (_req, res) => {
+    const db = checkDatabase();
     if (!db.ok) {
       res.status(503).json({
         ok: false,
