@@ -1,38 +1,18 @@
+# Опционально: Render. Основной деплой — Vercel (docs/VERCEL.md).
 services:
   - type: web
     name: glassnet-api
     runtime: node
     plan: free
     buildCommand: npm ci && npm run db:generate -w api && npm run build -w api
-    startCommand: npm run db:push -w api && npm run start -w api
+    startCommand: npm run start -w api
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
-      # SQLite рядом со schema (api/prisma). На free tier данные сбрасываются при redeploy.
-      - key: DATABASE_URL
-        value: file:./glassnet.db
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: MESSAGE_ENCRYPTION_KEY
         generateValue: true
-      - key: CORS_ORIGIN
-        fromService:
-          name: glassnet-web
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
-
-  - type: web
-    name: glassnet-web
-    runtime: node
-    plan: free
-    buildCommand: npm ci && npm run build -w web
-    startCommand: npm run start -w web -- -H 0.0.0.0
-    envVars:
-      - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: glassnet-api
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL

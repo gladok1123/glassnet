@@ -7,9 +7,10 @@
     "postinstall": "npm run db:generate -w api",
     "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w api\" \"npm run dev -w web\"",
     "build": "npm run build -w api && npm run build -w web",
-    "vercel-build": "npm run db:generate -w api && npm run build -w api && npm run db:push -w api && npm run build -w web",
+    "vercel-build": "npm run db:generate -w api && npm run build -w api && npm run build -w web",
     "start": "concurrently -n api,web \"npm run start -w api\" \"npm run start -w web\"",
     "db:push": "npm run db:push -w api",
+    "db:migrate": "npm run db:migrate -w api",
     "db:studio": "npm run db:studio -w api"
   },
   "devDependencies": {

@@ -21,87 +21,45 @@
 
 ```powershell
 cd d:\NewProject
-docker compose up -d
 npm install
 copy .env.example api\.env
 copy .env.example web\.env.local
-npm run db:push -w api
 npm run dev
 ```
 
 - Веб: http://localhost:3000  
 - API: http://localhost:4000/health  
+- База: **`api/prisma/glassnet.db`** (файл в репозитории)
 
 ---
 
-## Публикация в интернет (Vercel + PostgreSQL)
+## Публикация (Vercel + БД в GitHub)
 
-**Рекомендуется для РФ:** [Vercel](https://vercel.com) + **бесплатная** БД [Supabase](https://supabase.com) (см. **[docs/DATABASE.md](docs/DATABASE.md)**).
+База — **SQLite** в репозитории, без Supabase. Инструкции:
 
-- Деплой: **[docs/VERCEL.md](docs/VERCEL.md)**
+- **[docs/VERCEL.md](docs/VERCEL.md)** — деплой и **когда делать Redeploy**
+- **[docs/DATABASE.md](docs/DATABASE.md)** — как обновлять `glassnet.db`
 
 Кратко:
 
-1. **Supabase Free** → `DATABASE_URL` + `DIRECT_URL` (инструкция в DATABASE.md).
-2. [vercel.com/new](https://vercel.com/new) → `glassnet` → **Root Directory: `web`**.
-3. Секреты: `DATABASE_URL`, `DIRECT_URL`, `JWT_*`, `MESSAGE_ENCRYPTION_KEY`, `NODE_ENV=production`.
-4. Deploy → `https://ваш-проект.vercel.app`.
-
-Голосовые комнаты на Vercel используют REST-сигналинг (WebRTC); локально — Socket.IO.
-
-### HTTPS и звонки
-
-Микрофон и демонстрация экрана работают только по **HTTPS** (Vercel даёт автоматически).
+1. [vercel.com](https://vercel.com) → проект, **Root Directory: `web`**
+2. Секреты: `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MESSAGE_ENCRYPTION_KEY`, `NODE_ENV=production`
+3. `git push` (с файлом `api/prisma/glassnet.db`) → **Redeploy**
+4. Проверка: `/backend/health` → `"db":true`
 
 ---
 
-## Как редактировать проект
-
-### Структура
+## Структура
 
 ```
 api/
-  prisma/schema.prisma   — модели БД (посты, опросы, голосовые комнаты)
-  src/routes/            — REST API
-  src/socket.ts          — ЛС + сигналинг звонков
+  prisma/
+    schema.prisma
+    glassnet.db          ← база в GitHub
+  src/routes/
 web/
-  src/app/(app)/         — страницы приложения
-  src/components/        — UI (PostCard, VoiceCallRoom, …)
-  src/lib/api.ts         — все запросы к API
-  src/app/globals.css    — стили, мобильная вёрстка
+  src/app/(app)/
 ```
-
-### Частые правки
-
-| Задача | Файл |
-|--------|------|
-| Тексты кнопок / навигация | `web/src/components/glass/GlassNav.tsx` |
-| Лента | `web/src/app/(app)/feed/page.tsx` |
-| Создание поста (опрос/голос) | `web/src/app/(app)/compose/page.tsx` |
-| Карточка поста | `web/src/components/PostCard.tsx`, `PollBlock.tsx` |
-| Голосовые комнаты | `web/src/app/(app)/voice/`, `web/src/hooks/useVoiceCall.ts` |
-| Логика API постов | `api/src/routes/posts.ts` |
-| ЛС и открытие чата | `api/src/routes/messages.ts` |
-| Цвета / glass-эффект | `web/src/app/globals.css` (`:root`) |
-| Секреты и порты | `api/.env`, `web/.env.local` |
-
-### База данных
-
-После изменения `schema.prisma`:
-
-```powershell
-npm run db:push -w api
-```
-
-### Production-сборка
-
-```powershell
-npm run build
-npm run start -w api
-npm run start -w web
-```
-
-Обязательно: `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MESSAGE_ENCRYPTION_KEY`.
 
 ---
 
@@ -111,7 +69,7 @@ npm run start -w web
 |---------|----------|
 | `npm run dev` | API + Web |
 | `npm run build` | Production build |
-| `npm run db:push -w api` | Применить схему БД |
+| `npm run db:migrate:dev -w api` | Новая миграция после правки schema |
 | `npm run db:studio -w api` | Prisma Studio |
 
 ---
@@ -119,11 +77,11 @@ npm run start -w web
 ## Безопасность
 
 - ЛС шифруются AES-256-GCM (`MESSAGE_ENCRYPTION_KEY`).
-- Голосовой трафик: WebRTC с **DTLS-SRTP** (сквозное шифрование медиа между браузерами; сервер только пересылает SDP/ICE).
+- WebRTC: **DTLS-SRTP** между браузерами.
 - Helmet, rate limit, валидация env в production.
 
 ---
 
 ## Лицензия
 
-MIT — используйте и дорабатывайте свободно.
+MIT

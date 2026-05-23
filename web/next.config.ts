@@ -9,6 +9,9 @@ const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const nextConfig: NextConfig = {
   outputFileTracingRoot: repoRoot,
   serverExternalPackages: ["@prisma/client"],
+  outputFileTracingIncludes: {
+    "/backend/[[...slug]]": ["./api/prisma/glassnet.db"],
+  },
   devIndicators: false,
   ...(basePath ? { basePath, assetPrefix: basePath } : {}),
   ...(isStaticExport

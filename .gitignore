@@ -3,6 +3,7 @@ node_modules
 dist
 *.db
 *.db-journal
+!api/prisma/glassnet.db
 api/uploads/
 .env
 .env.local

@@ -10,6 +10,7 @@ import { clansRouter } from "./routes/clans.js";
 import { voiceRouter } from "./routes/voice.js";
 import { UPLOAD_DIR } from "./lib/upload.js";
 import { applySecurity } from "./lib/security.js";
+import { checkDatabase } from "./lib/db.js";
 
 export function createApp() {
   const app = express();
@@ -42,11 +43,24 @@ export function createApp() {
   });
   app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "7d" }));
 
-  app.get("/health", (_req, res) => {
+  app.get("/health", async (_req, res) => {
+    const db = await checkDatabase();
+    if (!db.ok) {
+      res.status(503).json({
+        ok: false,
+        name: "GlassNet API",
+        version: process.env.npm_package_version ?? "1.0.0",
+        db: false,
+        error: "database_unreachable",
+        hint: "Проверьте api/prisma/glassnet.db в репозитории (docs/DATABASE.md)",
+      });
+      return;
+    }
     res.json({
       ok: true,
       name: "GlassNet API",
       version: process.env.npm_package_version ?? "1.0.0",
+      db: true,
     });
   });
 

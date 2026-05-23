@@ -1,5 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "cd .. && npm ci --include=dev",
-  "buildCommand": "cd .. && npm run vercel-build"
+  "buildCommand": "cd .. && npm run vercel-build",
+  "build": {
+    "env": {
+      "DATABASE_URL": "file:./glassnet.db"
+    }
+  }
 }
