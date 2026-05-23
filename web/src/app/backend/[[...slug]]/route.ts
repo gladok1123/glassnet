@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { createMocks } from "node-mocks-http";
-import type { RequestMethod } from "node-mocks-http";
+import type { Body, RequestMethod } from "node-mocks-http";
 import type { Express } from "express";
 import { createApp } from "../../../../../api/dist/app.js";
 import { validateEnv } from "../../../../../api/dist/lib/env.js";
@@ -19,18 +19,41 @@ function getApp() {
   return expressApp;
 }
 
+function prepareMockRequest(request: NextRequest, raw: Buffer | undefined) {
+  const headers = Object.fromEntries(request.headers.entries());
+  if (!raw?.length) {
+    return { headers, body: undefined as unknown };
+  }
+  const ct = (headers["content-type"] ?? "").toLowerCase();
+  if (ct.includes("application/json")) {
+    delete headers["content-length"];
+    delete headers["Content-Length"];
+    return { headers, body: JSON.parse(raw.toString("utf8")) as unknown };
+  }
+  if (ct.includes("application/x-www-form-urlencoded")) {
+    delete headers["content-length"];
+    delete headers["Content-Length"];
+    return {
+      headers,
+      body: Object.fromEntries(new URLSearchParams(raw.toString("utf8"))),
+    };
+  }
+  return { headers, body: raw };
+}
+
 async function handle(request: NextRequest): Promise<Response> {
   const url = new URL(request.url);
-  const body =
+  const raw =
     request.method !== "GET" && request.method !== "HEAD"
       ? Buffer.from(await request.arrayBuffer())
       : undefined;
+  const mock = prepareMockRequest(request, raw);
 
   const { req, res } = createMocks({
     method: request.method as RequestMethod,
     url: url.pathname + url.search,
-    headers: Object.fromEntries(request.headers.entries()),
-    body,
+    headers: mock.headers,
+    body: mock.body as Body | undefined,
   });
 
   const app = getApp();

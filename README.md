@@ -34,18 +34,19 @@ npm run dev
 
 ---
 
-## Публикация в интернет (Vercel + Neon)
+## Публикация в интернет (Vercel + PostgreSQL)
 
-**Рекомендуется для РФ:** [Vercel](https://vercel.com) (фронт + API на одном домене) + бесплатный Postgres на [Neon](https://neon.tech).
+**Рекомендуется для РФ:** [Vercel](https://vercel.com) + Postgres на **[Timeweb Cloud](https://timeweb.cloud)** (Neon в РФ часто заблокирован).
 
-Подробная инструкция: **[docs/VERCEL.md](docs/VERCEL.md)**
+- Деплой: **[docs/VERCEL.md](docs/VERCEL.md)**
+- База и перенос с Neon: **[docs/DATABASE.md](docs/DATABASE.md)**
 
 Кратко:
 
-1. Создайте БД на Neon, скопируйте `DATABASE_URL`.
-2. [vercel.com/new](https://vercel.com/new) → репозиторий `glassnet` → **Root Directory: `web`**.
-3. Добавьте переменные: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MESSAGE_ENCRYPTION_KEY`, `NODE_ENV=production`.
-4. Deploy → делитесь ссылкой `https://ваш-проект.vercel.app`.
+1. Создайте PostgreSQL (Timeweb / Supabase), задайте `DATABASE_URL` и `DIRECT_URL`.
+2. [vercel.com/new](https://vercel.com/new) → `glassnet` → **Root Directory: `web`**.
+3. Секреты: `DATABASE_URL`, `DIRECT_URL`, `JWT_*`, `MESSAGE_ENCRYPTION_KEY`, `NODE_ENV=production`.
+4. Deploy → `https://ваш-проект.vercel.app`.
 
 Голосовые комнаты на Vercel используют REST-сигналинг (WebRTC); локально — Socket.IO.
 
@@ -101,7 +102,7 @@ npm run start -w api
 npm run start -w web
 ```
 
-Обязательно новые секреты: `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MESSAGE_ENCRYPTION_KEY`, `DATABASE_URL` (PostgreSQL, например Neon).
+Обязательно: `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MESSAGE_ENCRYPTION_KEY`.
 
 ---
 

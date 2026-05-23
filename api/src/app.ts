@@ -32,7 +32,14 @@ export function createApp() {
       allowedHeaders: ["Authorization", "Content-Type"],
     })
   );
-  app.use(express.json({ limit: "256kb" }));
+  const parseJson = express.json({ limit: "256kb" });
+  app.use((req, res, next) => {
+    if (req.body !== undefined && req.body !== null) {
+      next();
+      return;
+    }
+    parseJson(req, res, next);
+  });
   app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "7d" }));
 
   app.get("/health", (_req, res) => {
