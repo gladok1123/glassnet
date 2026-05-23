@@ -8,6 +8,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: glassnet
+          POSTGRES_PASSWORD: glassnet
+          POSTGRES_DB: glassnet
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U glassnet"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -22,7 +36,7 @@ jobs:
       - name: Prisma schema
         run: npm run db:push -w api
         env:
-          DATABASE_URL: file:./dev.db
+          DATABASE_URL: postgresql://glassnet:glassnet@localhost:5432/glassnet
 
       - name: Build API
         run: npm run build -w api

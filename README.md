@@ -21,10 +21,10 @@
 
 ```powershell
 cd d:\NewProject
+docker compose up -d
 npm install
 copy .env.example api\.env
 copy .env.example web\.env.local
-# Отредактируйте web\.env.local: NEXT_PUBLIC_API_URL=http://localhost:4000
 npm run db:push -w api
 npm run dev
 ```
@@ -34,46 +34,24 @@ npm run dev
 
 ---
 
-## Публикация в интернет (рекомендуется Render)
+## Публикация в интернет (Vercel + Neon)
 
-Приложение состоит из **двух частей**: фронтенд (Next.js) и API (Express + Socket.IO).
+**Рекомендуется для РФ:** [Vercel](https://vercel.com) (фронт + API на одном домене) + бесплатный Postgres на [Neon](https://neon.tech).
 
-**Проще всего:** подключите репозиторий к [Render](https://render.com) — в корне есть `render.yaml` (сервисы `glassnet-api` и `glassnet-web`). После деплоя укажите `CORS_ORIGIN` = URL фронтенда.
+Подробная инструкция: **[docs/VERCEL.md](docs/VERCEL.md)**
 
-**Альтернатива — GitHub Pages** только для статики; API всё равно на Render. Статический экспорт с динамическими маршрутами ограничен — для полного функционала используйте Render/Vercel для веб-части.
+Кратко:
 
-### Шаг 1 — Репозиторий на GitHub
+1. Создайте БД на Neon, скопируйте `DATABASE_URL`.
+2. [vercel.com/new](https://vercel.com/new) → репозиторий `glassnet` → **Root Directory: `web`**.
+3. Добавьте переменные: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MESSAGE_ENCRYPTION_KEY`, `NODE_ENV=production`.
+4. Deploy → делитесь ссылкой `https://ваш-проект.vercel.app`.
 
-```powershell
-cd d:\NewProject
-git init
-git add .
-git commit -m "GlassNet release 1.0"
-git branch -M main
-git remote add origin https://github.com/ВАШ_ЛОГИН/glassnet.git
-git push -u origin main
-```
-
-В настройках репозитория: **Settings → Pages → Build and deployment → GitHub Actions**.
-
-### Шаг 2 — API на Render
-
-1. Подключите репозиторий в Render → **New Web Service** → корень `api` (или используйте `render.yaml` в корне).
-2. Задайте переменные (см. `.env.example`).
-3. `CORS_ORIGIN` = URL вашего GitHub Pages, например `https://ВАШ_ЛОГИН.github.io`.
-4. Скопируйте URL API, например `https://glassnet-api.onrender.com`.
-
-### Шаг 3 — Секрет для GitHub Actions
-
-**Settings → Secrets → Actions** → `NEXT_PUBLIC_API_URL` = URL API из шага 2.
-
-После push в `main` workflow `.github/workflows/deploy-pages.yml` соберёт сайт и опубликует на:
-
-`https://ВАШ_ЛОГИН.github.io/glassnet/` (если репозиторий не `username.github.io`, добавьте в `web/next.config.ts` `basePath: '/glassnet'`).
+Голосовые комнаты на Vercel используют REST-сигналинг (WebRTC); локально — Socket.IO.
 
 ### HTTPS и звонки
 
-Голосовые комнаты и демонстрация экрана работают только по **HTTPS** (GitHub Pages и Render дают HTTPS автоматически).
+Микрофон и демонстрация экрана работают только по **HTTPS** (Vercel даёт автоматически).
 
 ---
 
@@ -123,7 +101,7 @@ npm run start -w api
 npm run start -w web
 ```
 
-Обязательно новые секреты: `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MESSAGE_ENCRYPTION_KEY` (64 hex), `CORS_ORIGIN`, PostgreSQL для `DATABASE_URL` на проде.
+Обязательно новые секреты: `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MESSAGE_ENCRYPTION_KEY`, `DATABASE_URL` (PostgreSQL, например Neon).
 
 ---
 

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -113,6 +113,17 @@ model VoiceRoomMember {
 
   @@unique([roomId, userId])
   @@index([userId])
+}
+
+model VoiceSignal {
+  id         String   @id @default(cuid())
+  roomId     String
+  toUserId   String
+  fromUserId String
+  signal     String
+  createdAt  DateTime @default(now())
+
+  @@index([toUserId, createdAt])
 }
 
 model Hashtag {

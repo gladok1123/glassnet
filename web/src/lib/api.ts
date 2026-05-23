@@ -15,12 +15,17 @@ import type {
   VoiceRoom,
 } from "./types";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+export function getApiUrl(): string {
+  const env = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  if (env) return env;
+  if (typeof window !== "undefined") return "/backend";
+  return "http://localhost:4000";
+}
 
 async function refreshAccess(): Promise<string | null> {
   const refresh = getRefreshToken();
   if (!refresh) return null;
-  const res = await fetch(`${API}/auth/refresh`, {
+  const res = await fetch(`${getApiUrl()}/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken: refresh }),
@@ -49,12 +54,12 @@ export async function api<T>(
     headers.set("Content-Type", "application/json");
   }
 
-  let res = await fetch(`${API}${path}`, { ...options, headers });
+  let res = await fetch(`${getApiUrl()}${path}`, { ...options, headers });
   if (res.status === 401 && getRefreshToken()) {
     token = await refreshAccess();
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
-      res = await fetch(`${API}${path}`, { ...options, headers });
+      res = await fetch(`${getApiUrl()}${path}`, { ...options, headers });
     }
   }
   if (!res.ok) {
@@ -223,6 +228,28 @@ export const voiceApi = {
     }),
   leave: (id: string) =>
     api<{ left: boolean }>(`/voice/${id}/leave`, { method: "POST" }),
+  sendSignal: (body: {
+    roomId: string;
+    toUserId: string;
+    signal: unknown;
+  }) =>
+    api<{ ok: boolean }>("/voice/signal", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  pollSignals: (since?: string) =>
+    api<{
+      signals: {
+        roomId: string;
+        fromUserId: string;
+        signal: {
+          type: string;
+          sdp?: RTCSessionDescriptionInit;
+          candidate?: RTCIceCandidateInit;
+        };
+        at: string;
+      }[];
+    }>(`/voice/signals${since ? `?since=${encodeURIComponent(since)}` : ""}`),
 };
 
 export const notificationsApi = {
@@ -231,6 +258,3 @@ export const notificationsApi = {
     api<{ ok: boolean }>("/notifications/read-all", { method: "POST" }),
 };
 
-export function getApiUrl() {
-  return API;
-}

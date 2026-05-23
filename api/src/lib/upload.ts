@@ -7,9 +7,8 @@ import { randomBytes } from "node:crypto";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function resolveUploadDir() {
-  const db = process.env.DATABASE_URL ?? "";
-  if (db.startsWith("file:/data")) {
-    return "/data/uploads";
+  if (process.env.VERCEL) {
+    return "/tmp/glassnet-uploads";
   }
   return path.join(__dirname, "../../uploads");
 }

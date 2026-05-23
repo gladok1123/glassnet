@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { io, type Socket } from "socket.io-client";
 import { messagesApi, getApiUrl } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth-store";
+import { useRestSignaling } from "@/lib/signaling";
 import type { Message } from "@/lib/types";
 import { GlassButton } from "@/components/glass/GlassButton";
 import { GlassInput } from "@/components/glass/GlassInput";
@@ -32,6 +33,7 @@ export default function ChatPage() {
   const [text, setText] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  const restSignaling = useRestSignaling();
 
   const load = useCallback(async () => {
     const data = await messagesApi.get(conversationId);
@@ -47,6 +49,7 @@ export default function ChatPage() {
   }, [messages]);
 
   useEffect(() => {
+    if (restSignaling) return;
     const token = getAccessToken();
     if (!token) return;
     const socket = io(getApiUrl(), { auth: { token } });
@@ -60,7 +63,13 @@ export default function ChatPage() {
     return () => {
       socket.disconnect();
     };
-  }, [conversationId, user?.id]);
+  }, [conversationId, restSignaling, user?.id]);
+
+  useEffect(() => {
+    if (!restSignaling) return;
+    const id = setInterval(() => void load(), 3000);
+    return () => clearInterval(id);
+  }, [load, restSignaling]);
 
   async function fallbackHttp(content: string) {
     const res = await messagesApi.send(conversationId, content);
@@ -72,7 +81,7 @@ export default function ChatPage() {
     if (!content) return;
     setText("");
     const socket = socketRef.current;
-    if (socket?.connected) {
+    if (!restSignaling && socket?.connected) {
       socket.emit(
         "message:send",
         { conversationId, content },

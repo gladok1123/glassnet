@@ -15,6 +15,13 @@ export function createApp() {
   const app = express();
   const origin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
 
+  app.use((req, _res, next) => {
+    if (req.url.startsWith("/backend")) {
+      req.url = req.url.slice("/backend".length) || "/";
+    }
+    next();
+  });
+
   applySecurity(app);
 
   app.use(

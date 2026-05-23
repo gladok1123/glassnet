@@ -125,3 +125,60 @@ voiceRouter.post("/:id/leave", requireAuth, async (req: AuthedRequest, res) => {
   }
   res.json({ left: true });
 });
+
+const signalSchema = z.object({
+  roomId: z.string().min(1),
+  toUserId: z.string().min(1),
+  signal: z.unknown(),
+});
+
+voiceRouter.post("/signal", requireAuth, async (req: AuthedRequest, res) => {
+  const parsed = signalSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Неверные данные" });
+    return;
+  }
+  const { roomId, toUserId, signal } = parsed.data;
+  const member = await prisma.voiceRoomMember.findFirst({
+    where: { roomId, userId: req.userId! },
+  });
+  if (!member) {
+    res.status(403).json({ error: "Вы не в комнате" });
+    return;
+  }
+  await prisma.voiceSignal.create({
+    data: {
+      roomId,
+      toUserId,
+      fromUserId: req.userId!,
+      signal: JSON.stringify(signal),
+    },
+  });
+  res.json({ ok: true });
+});
+
+voiceRouter.get("/signals", requireAuth, async (req: AuthedRequest, res) => {
+  const sinceRaw = typeof req.query.since === "string" ? req.query.since : "";
+  const since = sinceRaw ? new Date(sinceRaw) : new Date(0);
+  if (Number.isNaN(since.getTime())) {
+    res.status(400).json({ error: "Неверный since" });
+    return;
+  }
+  const rows = await prisma.voiceSignal.findMany({
+    where: { toUserId: req.userId!, createdAt: { gt: since } },
+    orderBy: { createdAt: "asc" },
+    take: 200,
+  });
+  if (rows.length > 0) {
+    const ids = rows.map((r) => r.id);
+    await prisma.voiceSignal.deleteMany({ where: { id: { in: ids } } });
+  }
+  res.json({
+    signals: rows.map((r) => ({
+      roomId: r.roomId,
+      fromUserId: r.fromUserId,
+      signal: JSON.parse(r.signal) as unknown,
+      at: r.createdAt.toISOString(),
+    })),
+  });
+});

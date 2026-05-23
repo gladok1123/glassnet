@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, voiceApi } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth-store";
+import { useRestSignaling } from "@/lib/signaling";
 
 const ICE: RTCConfiguration = {
   iceServers: [
@@ -16,6 +17,12 @@ type Peer = {
   userId: string;
   pc: RTCPeerConnection;
   stream: MediaStream | null;
+};
+
+type SignalPayload = {
+  type: string;
+  sdp?: RTCSessionDescriptionInit;
+  candidate?: RTCIceCandidateInit;
 };
 
 export function useVoiceCall(roomId: string, myUserId: string) {
@@ -33,6 +40,24 @@ export function useVoiceCall(roomId: string, myUserId: string) {
   const peersRef = useRef<Map<string, Peer>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
   const screenTrackRef = useRef<MediaStreamTrack | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const signalSinceRef = useRef<string>(new Date(0).toISOString());
+  const restSignaling = useRestSignaling();
+
+  const sendSignal = useCallback(
+    (toUserId: string, signal: SignalPayload) => {
+      if (restSignaling) {
+        void voiceApi.sendSignal({ roomId, toUserId, signal });
+        return;
+      }
+      socketRef.current?.emit("voice:signal", {
+        roomId,
+        toUserId,
+        signal,
+      });
+    },
+    [restSignaling, roomId]
+  );
 
   const updateRemotes = useCallback(() => {
     const map = new Map<string, MediaStream>();
@@ -40,10 +65,6 @@ export function useVoiceCall(roomId: string, myUserId: string) {
       if (p.stream) map.set(uid, p.stream);
     });
     setRemoteStreams(new Map(map));
-  }, []);
-
-  const getSenders = useCallback((pc: RTCPeerConnection) => {
-    return pc.getSenders().filter((s) => s.track?.kind === "audio" || s.track?.kind === "video");
   }, []);
 
   const replaceOutgoingTrack = useCallback(
@@ -78,11 +99,7 @@ export function useVoiceCall(roomId: string, myUserId: string) {
 
       pc.onicecandidate = (ev) => {
         if (!ev.candidate) return;
-        socketRef.current?.emit("voice:signal", {
-          roomId,
-          toUserId: remoteUserId,
-          signal: { type: "ice", candidate: ev.candidate },
-        });
+        sendSignal(remoteUserId, { type: "ice", candidate: ev.candidate });
       };
 
       pc.onconnectionstatechange = () => {
@@ -92,25 +109,14 @@ export function useVoiceCall(roomId: string, myUserId: string) {
       if (initiator) {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-        socketRef.current?.emit("voice:signal", {
-          roomId,
-          toUserId: remoteUserId,
-          signal: { type: "offer", sdp: offer },
-        });
+        sendSignal(remoteUserId, { type: "offer", sdp: offer });
       }
     },
-    [myUserId, roomId, updateRemotes]
+    [myUserId, sendSignal, updateRemotes]
   );
 
   const handleSignal = useCallback(
-    async (
-      fromUserId: string,
-      signal: {
-        type: string;
-        sdp?: RTCSessionDescriptionInit;
-        candidate?: RTCIceCandidateInit;
-      }
-    ) => {
+    async (fromUserId: string, signal: SignalPayload) => {
       let peer = peersRef.current.get(fromUserId);
       if (!peer) {
         await createPeer(fromUserId, false);
@@ -122,19 +128,58 @@ export function useVoiceCall(roomId: string, myUserId: string) {
         await pc.setRemoteDescription(signal.sdp);
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        socketRef.current?.emit("voice:signal", {
-          roomId,
-          toUserId: fromUserId,
-          signal: { type: "answer", sdp: answer },
-        });
+        sendSignal(fromUserId, { type: "answer", sdp: answer });
       } else if (signal.type === "answer" && signal.sdp) {
         await pc.setRemoteDescription(signal.sdp);
       } else if (signal.type === "ice" && signal.candidate) {
         await pc.addIceCandidate(signal.candidate);
       }
     },
-    [createPeer, roomId]
+    [createPeer, sendSignal]
   );
+
+  const syncRoomMembers = useCallback(async () => {
+    const { room } = await voiceApi.get(roomId);
+    const memberIds = (room.members ?? []).map((m) => m.user.id);
+    for (const uid of memberIds) {
+      if (uid === myUserId || peersRef.current.has(uid)) continue;
+      await createPeer(uid, myUserId < uid);
+    }
+    for (const uid of [...peersRef.current.keys()]) {
+      if (!memberIds.includes(uid)) {
+        peersRef.current.get(uid)?.pc.close();
+        peersRef.current.delete(uid);
+      }
+    }
+    updateRemotes();
+  }, [createPeer, myUserId, roomId, updateRemotes]);
+
+  const startRestPolling = useCallback(() => {
+    if (pollRef.current) return;
+    pollRef.current = setInterval(() => {
+      void (async () => {
+        try {
+          const { signals } = await voiceApi.pollSignals(signalSinceRef.current);
+          for (const s of signals) {
+            if (s.roomId !== roomId) continue;
+            signalSinceRef.current = s.at;
+            if (s.fromUserId === myUserId) continue;
+            await handleSignal(s.fromUserId, s.signal);
+          }
+          await syncRoomMembers();
+        } catch {
+          /* ignore transient poll errors */
+        }
+      })();
+    }, 800);
+  }, [handleSignal, myUserId, roomId, syncRoomMembers]);
+
+  const stopRestPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }, []);
 
   const join = useCallback(async () => {
     setError(null);
@@ -152,6 +197,20 @@ export function useVoiceCall(roomId: string, myUserId: string) {
 
     const token = getAccessToken();
     if (!token) return;
+
+    if (restSignaling) {
+      try {
+        await voiceApi.join(roomId);
+        signalSinceRef.current = new Date().toISOString();
+        setConnected(true);
+        await syncRoomMembers();
+        startRestPolling();
+      } catch {
+        setError("Не удалось подключиться к комнате");
+      }
+      return;
+    }
+
     const socket = io(getApiUrl(), { auth: { token } });
     socketRef.current = socket;
 
@@ -173,19 +232,30 @@ export function useVoiceCall(roomId: string, myUserId: string) {
 
     socket.on(
       "voice:signal",
-      (payload: {
-        fromUserId: string;
-        signal: { type: string; sdp?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit };
-      }) => {
+      (payload: { fromUserId: string; signal: SignalPayload }) => {
         if (payload.fromUserId === myUserId) return;
         void handleSignal(payload.fromUserId, payload.signal);
       }
     );
-  }, [createPeer, handleSignal, myUserId, roomId, updateRemotes]);
+  }, [
+    createPeer,
+    handleSignal,
+    myUserId,
+    restSignaling,
+    roomId,
+    startRestPolling,
+    syncRoomMembers,
+    updateRemotes,
+  ]);
 
   const leave = useCallback(() => {
-    socketRef.current?.emit("voice:leave", roomId);
-    socketRef.current?.disconnect();
+    stopRestPolling();
+    if (restSignaling) {
+      void voiceApi.leave(roomId);
+    } else {
+      socketRef.current?.emit("voice:leave", roomId);
+      socketRef.current?.disconnect();
+    }
     peersRef.current.forEach((p) => p.pc.close());
     peersRef.current.clear();
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
@@ -195,7 +265,7 @@ export function useVoiceCall(roomId: string, myUserId: string) {
     setRemoteStreams(new Map());
     setConnected(false);
     setScreenSharing(false);
-  }, [roomId]);
+  }, [restSignaling, roomId, stopRestPolling]);
 
   const toggleMute = useCallback(() => {
     const track = localStreamRef.current?.getAudioTracks()[0];

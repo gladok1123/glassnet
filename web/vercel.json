@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "cd .. && npm ci",
+  "buildCommand": "cd .. && npm run db:generate -w api && npm run build -w api && npx prisma db push --schema=../api/prisma/schema.prisma && npm run build -w web",
+  "framework": "nextjs",
+  "rewrites": [
+    { "source": "/backend/:path*", "destination": "/api-handler" }
+  ],
+  "functions": {
+    "api-handler/index.ts": {
+      "maxDuration": 30,
+      "includeFiles": "../api/dist/**"
+    }
+  }
+}
