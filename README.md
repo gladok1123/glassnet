@@ -36,14 +36,13 @@ npm run dev
 
 ## Публикация в интернет (Vercel + PostgreSQL)
 
-**Рекомендуется для РФ:** [Vercel](https://vercel.com) + Postgres на **[Timeweb Cloud](https://timeweb.cloud)** (Neon в РФ часто заблокирован).
+**Рекомендуется для РФ:** [Vercel](https://vercel.com) + **бесплатная** БД [Supabase](https://supabase.com) (см. **[docs/DATABASE.md](docs/DATABASE.md)**).
 
 - Деплой: **[docs/VERCEL.md](docs/VERCEL.md)**
-- База и перенос с Neon: **[docs/DATABASE.md](docs/DATABASE.md)**
 
 Кратко:
 
-1. Создайте PostgreSQL (Timeweb / Supabase), задайте `DATABASE_URL` и `DIRECT_URL`.
+1. **Supabase Free** → `DATABASE_URL` + `DIRECT_URL` (инструкция в DATABASE.md).
 2. [vercel.com/new](https://vercel.com/new) → `glassnet` → **Root Directory: `web`**.
 3. Секреты: `DATABASE_URL`, `DIRECT_URL`, `JWT_*`, `MESSAGE_ENCRYPTION_KEY`, `NODE_ENV=production`.
 4. Deploy → `https://ваш-проект.vercel.app`.

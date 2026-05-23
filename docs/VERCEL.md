@@ -1,12 +1,12 @@
 # Деплой на Vercel (работает из РФ)
 
-Один домен: сайт + API (`/backend`). База — **PostgreSQL** (не Neon): [Timeweb Cloud](https://timeweb.cloud) или [Supabase](https://supabase.com).  
+Один домен: сайт + API (`/backend`). База — **бесплатный PostgreSQL** ([Supabase Free](https://supabase.com) или [ElephantSQL](https://www.elephantsql.com)).  
 Подробнее: **[DATABASE.md](DATABASE.md)**
 
-## 1. База данных
+## 1. База данных (бесплатно)
 
-1. Создайте PostgreSQL (см. **DATABASE.md**).
-2. Скопируйте `DATABASE_URL` и `DIRECT_URL` (для Timeweb — одна и та же строка).
+1. Создайте **Supabase Free** (пошагово в **DATABASE.md**).
+2. Скопируйте `DATABASE_URL` (pooler, порт 6543) и `DIRECT_URL` (session, порт 5432).
 
 ## 2. Vercel
 

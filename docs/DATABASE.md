@@ -1,67 +1,92 @@
-# База данных (без Neon)
+# Бесплатная база данных (PostgreSQL)
 
-GlassNet использует **PostgreSQL**. Neon в РФ часто недоступен — ниже варианты и перенос данных.
+GlassNet нужен **PostgreSQL**. Neon в РФ часто недоступен. Ниже — **бесплатные** варианты.
 
-## Рекомендация для РФ: Timeweb Cloud
+## Рекомендуем: Supabase Free
 
-1. [timeweb.cloud](https://timeweb.cloud) → **Базы данных** → PostgreSQL.
-2. Создайте кластер, откройте **публичный доступ** (или добавьте `0.0.0.0/0` в firewall для Vercel).
-3. Скопируйте строку подключения, например:
-   `postgresql://user:pass@host:5432/glassnet?sslmode=require`
+Бесплатно: ~500 МБ, подходит для Vercel, есть pooler для serverless.
 
-В **Vercel → Environment Variables**:
+1. [supabase.com](https://supabase.com) → **Start your project** (регистрация через GitHub).
+2. **New project** → регион **Frankfurt** или **Stockholm** (ближе к EU).
+3. Дождитесь создания → **Project Settings** → **Database**.
+
+Скопируйте две строки:
+
+| Переменная в Vercel | Где взять в Supabase |
+|---------------------|----------------------|
+| `DATABASE_URL` | **Connection string** → вкладка **URI** → режим **Transaction** (порт **6543**). В конец добавьте `?pgbouncer=true` |
+| `DIRECT_URL` | **Connection string** → **URI** → режим **Session** (порт **5432**) |
+
+Пример `DATABASE_URL` (подставьте свой пароль и хост):
+
+```text
+postgresql://postgres.xxxx:ВАШ_ПАРОЛЬ@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+```
+
+Пример `DIRECT_URL`:
+
+```text
+postgresql://postgres.xxxx:ВАШ_ПАРОЛЬ@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+```
+
+4. Vercel → **Settings → Environment Variables** → вставьте обе → **Redeploy**.
+
+Если сайт не открывается в браузере — зайдите в Supabase через VPN один раз; **Vercel к базе подключается сам**, это важно только для настройки.
+
+---
+
+## Запасной вариант: ElephantSQL (Tiny Turtle)
+
+Бесплатно **20 МБ** — хватит для теста и небольшого проекта.
+
+1. [elephantsql.com](https://www.elephantsql.com) → **Get a managed database today** → план **Tiny Turtle (Free)**.
+2. Создайте инстанс → вкладка **Details** → **URL**.
+
+В Vercel:
 
 | Переменная | Значение |
 |------------|----------|
-| `DATABASE_URL` | строка подключения |
-| `DIRECT_URL` | **та же строка** (для Timeweb pooler не нужен) |
+| `DATABASE_URL` | URL из ElephantSQL |
+| `DIRECT_URL` | **тот же URL** |
 
-Локально в `api/.env` — те же значения или Docker:
+---
+
+## Локально (бесплатно, без облака)
 
 ```powershell
 docker compose up -d
-# DATABASE_URL=postgresql://glassnet:glassnet@localhost:5432/glassnet
-# DIRECT_URL=postgresql://glassnet:glassnet@localhost:5432/glassnet
+copy .env.example api\.env
+copy .env.example web\.env.local
+npm run db:push -w api
+npm run dev
 ```
 
----
-
-## Альтернатива: Supabase (EU)
-
-1. [supabase.com](https://supabase.com) → проект → **Settings → Database**.
-2. **Transaction pooler** (порт **6543**) → `DATABASE_URL` (добавьте `?pgbouncer=true`).
-3. **Session mode** (порт **5432**) → `DIRECT_URL` (для `prisma db push` на Vercel).
+`DATABASE_URL` и `DIRECT_URL` — как в `.env.example` (`localhost:5432`).
 
 ---
 
-## Перенос данных с Neon
+## Платно / РФ-хостинг (если нужен свой сервер)
 
-Если на Neon уже есть пользователи/посты, сделайте дамп **через VPN** (один раз):
+[Timeweb Cloud](https://timeweb.cloud) PostgreSQL — от ~200 ₽/мес, удобно из РФ.  
+`DATABASE_URL` и `DIRECT_URL` — **одна и та же** строка подключения.
+
+---
+
+## Перенос со старой базы (Neon и др.)
 
 ```powershell
-# Установите PostgreSQL client (psql/pg_dump) или используйте Docker:
-$neon = "postgresql://USER:PASS@ep-xxx.neon.tech/neondb?sslmode=require"
-$new  = "postgresql://USER:PASS@HOST:5432/glassnet?sslmode=require"
-
-docker run --rm -e PGPASSWORD=... postgres:16-alpine pg_dump $neon --no-owner --no-acl -f /tmp/dump.sql
-docker run --rm -i postgres:16-alpine psql $new -f - < dump.sql
+$env:NEON_DATABASE_URL = "старая строка"
+$env:NEW_DATABASE_URL  = "новая строка (Supabase/ElephantSQL)"
+.\scripts\db-migrate.ps1
 ```
 
-Проще с файлами:
-
-```powershell
-pg_dump "$env:NEON_DATABASE_URL" --no-owner --no-acl -F p -f glassnet-backup.sql
-psql "$env:NEW_DATABASE_URL" -f glassnet-backup.sql
-```
-
-Если Neon пустой — просто задайте новый `DATABASE_URL` / `DIRECT_URL` на Vercel и **Redeploy**.
+Если база была пустая — просто новые URL на Vercel и **Redeploy**.
 
 ---
 
-## После смены URL
+## Проверка
 
-1. Vercel → обновите `DATABASE_URL` и `DIRECT_URL`.
-2. **Redeploy** (лучше с **Clear build cache**).
-3. Проверка: `/backend/health` и регистрация на сайте.
+После деплоя:
 
-Скрипт-подсказка: `scripts/db-migrate.ps1`
+- `https://ВАШ-ПРОЕКТ.vercel.app/backend/health` → `{"ok":true,...}`
+- Регистрация на сайте без таймаута 30 с
