@@ -13,3 +13,9 @@ export default async function apiHandler(
 ) {
   await handler(req, res);
 }
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
